@@ -1,0 +1,37 @@
+model_name: solov2
+data:
+#  train_annotation_path: /home/huffman/data/coco/annotations/instances_train2017.json
+  train_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
+  val_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
+#  train_img_root: /home/huffman/data/coco/train2017
+  train_img_root: /home/huffman/data/coco/val2017
+  val_img_root: /home/huffman/data/coco/val2017
+  max_thresh: 768
+  use_crowd: False
+  batch_size: 4
+  num_workers: 2
+  debug: False
+  remove_blank: Ture
+
+model:
+  num_cls: 80
+  backbone: resnet50
+  pretrained: True
+  reduction: False
+  fpn_channel: 256
+
+optim:
+  optimizer: Adam
+  lr: 0.0001
+  milestones: [24,]
+  warm_up_epoch: 0
+  weight_decay: 0.0001
+  epochs: 24
+  sync_bn: True
+  amp: True
+val:
+  interval: 1
+  weight_path: weights
+
+
+gpus: 0,1,2,3
