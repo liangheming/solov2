@@ -45,7 +45,7 @@ class DDPMixSolver(object):
                                   batch_size=self.data_cfg['batch_size'],
                                   num_workers=self.data_cfg['num_workers'],
                                   collate_fn=self.tdata.collect_fn,
-                                  pin_memory=True,
+                                  # pin_memory=True,
                                   sampler=DistributedSampler(dataset=self.tdata, shuffle=True))
         self.vdata = COCODataSets(img_root=self.data_cfg['val_img_root'],
                                   annotation_path=self.data_cfg['val_annotation_path'],
@@ -60,7 +60,7 @@ class DDPMixSolver(object):
                                   batch_size=self.data_cfg['batch_size'],
                                   num_workers=self.data_cfg['num_workers'],
                                   collate_fn=self.vdata.collect_fn,
-                                  pin_memory=True,
+                                  # pin_memory=True,
                                   sampler=DistributedSampler(dataset=self.vdata, shuffle=False))
         print("train_data: ", len(self.tdata), " | ",
               "val_data: ", len(self.vdata), " | ",

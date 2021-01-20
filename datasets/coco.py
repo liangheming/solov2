@@ -66,7 +66,7 @@ class COCODataSets(Dataset):
                  debug=False,
                  remove_blank=True,
                  aug_cfg=None,
-                 square_padding=True):
+                 square_padding=False):
         """
         :param img_root:
         :param annotation_path:
@@ -196,8 +196,8 @@ class COCODataSets(Dataset):
         augment_transform = Compose(
             transforms=[
                 OneOf(transforms=[
-                    (0.5, basic_transform),
-                    (0.5, mosaic)
+                    (1.0, basic_transform),
+                    (0.0, mosaic)
                 ]),
                 LRFlip().reset(p=0.5)
             ]
@@ -220,9 +220,9 @@ class COCODataSets(Dataset):
         valid_size = list()
         max_h = make_divisible(max([item.img.shape[0] for item in batch]), 64)
         max_w = make_divisible(max([item.img.shape[1] for item in batch]), 64)
-        if self.square_padding:
-            max_h = max(max_w, max_h)
-            max_w = max_h
+        # if self.square_padding:
+        #     max_h = max(max_w, max_h)
+        #     max_w = max_h
         for item in batch:
             padding_val = item.padding_val
             img = np.ones((max_h, max_w, 3)) * np.array(padding_val)
