@@ -12,7 +12,7 @@ from nets.solov2 import SOLOv2
 from torch.utils.data.dataloader import DataLoader
 from utils.model_utils import rand_seed, ModelEMA, AverageLogger, reduce_sum
 from metrics.map import coco_map
-from utils.optims_utils import IterWarmUpCosineDecayMultiStepLRAdjust, split_optimizer
+from utils.optims_utils import IterWarmUpMultiStepDecay, split_optimizer
 
 rand_seed(1024)
 
@@ -82,12 +82,13 @@ class DDPMixSolver(object):
         self.scaler = amp.GradScaler(enabled=True) if self.optim_cfg['amp'] else None
         self.optimizer = optimizer
         self.ema = ModelEMA(self.model)
-        self.lr_adjuster = IterWarmUpCosineDecayMultiStepLRAdjust(init_lr=self.optim_cfg['lr'],
-                                                                  milestones=self.optim_cfg['milestones'],
-                                                                  warm_up_epoch=self.optim_cfg['warm_up_epoch'],
-                                                                  iter_per_epoch=len(self.tloader),
-                                                                  epochs=self.optim_cfg['epochs'],
-                                                                  )
+        self.lr_adjuster = IterWarmUpMultiStepDecay(init_lr=self.optim_cfg['lr'],
+                                                    milestones=self.optim_cfg['milestones'],
+                                                    warm_up_iter=self.optim_cfg['warm_up_iter'],
+                                                    iter_per_epoch=len(self.tloader),
+                                                    epochs=self.optim_cfg['epochs'],
+                                                    warm_up_factor=self.optim_cfg['warm_up_factor']
+                                                    )
         self.cls_loss = AverageLogger()
         self.mask_loss = AverageLogger()
         self.loss = AverageLogger()
