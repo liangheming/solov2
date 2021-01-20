@@ -162,10 +162,10 @@ class COCODataSets(Dataset):
         # data_info = RandScaleToMax(max_threshes=[640], pad_to_square=True)(data_info)
         data_info = self.transform(data_info)
         # assert data_info.img.dtype == np.uint8
-        import uuid
-        ret_img = data_info.draw_mask(colors, coco_names)
-        file_name = str(uuid.uuid4()).replace("-", "")
-        cv.imwrite("{:s}.jpg".format(file_name), ret_img)
+        # import uuid
+        # ret_img = data_info.draw_mask(colors, coco_names)
+        # file_name = str(uuid.uuid4()).replace("-", "")
+        # cv.imwrite("{:s}.jpg".format(file_name), ret_img)
         return data_info
 
     def set_transform(self):
@@ -196,8 +196,8 @@ class COCODataSets(Dataset):
         augment_transform = Compose(
             transforms=[
                 OneOf(transforms=[
-                    (1.0, basic_transform),
-                    (0.0, mosaic)
+                    (0.5, basic_transform),
+                    (0.5, mosaic)
                 ]),
                 LRFlip().reset(p=0.5)
             ]

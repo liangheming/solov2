@@ -484,10 +484,13 @@ class SOLOv2(nn.Module):
                                       align_corners=True).squeeze(0)[:, :single_size[1], :single_size[0]]
             seg_masks = seg_masks > self.cfg['mask_thresh']
             pred_boxes = torch.zeros((seg_masks.size(0), 4), device=device)
-            # for i in range(seg_masks.size(0)):
-            #     mask = seg_masks[i].squeeze()
-            #     ys, xs = torch.where(mask)
-            #     pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()], device=device).float()
+            for i in range(seg_masks.size(0)):
+                mask = seg_masks[i].squeeze()
+                ys, xs = torch.where(mask)
+                if len(ys) == 0:
+                    pred_boxes[i] = torch.tensor([0, 0, 1, 1], device=device).float()
+                else:
+                    pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()], device=device).float()
             pred_boxes = torch.cat([pred_boxes, cate_scores[:, None], cate_labels[:, None]], dim=-1)
             ret.append((pred_boxes, seg_masks))
         return ret

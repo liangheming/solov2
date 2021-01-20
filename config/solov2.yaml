@@ -1,13 +1,13 @@
 model_name: solov2
 data:
-  train_annotation_path: /home/huffman/data/coco/annotations/instances_train2017.json
-  #train_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
+#  train_annotation_path: /home/huffman/data/coco/annotations/instances_train2017.json
+  train_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
   val_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
-  train_img_root: /home/huffman/data/coco/train2017
-  #train_img_root: /home/huffman/data/coco/val2017
+#  train_img_root: /home/huffman/data/coco/train2017
+  train_img_root: /home/huffman/data/coco/val2017
   val_img_root: /home/huffman/data/coco/val2017
-  min_threshes: [416, 448, 480, 512, 544, 576, 608, 640]
-  max_thresh: 768
+  min_threshes: [640]
+  max_thresh: 640
   use_crowd: False
   batch_size: 4
   num_workers: 2
