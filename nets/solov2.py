@@ -412,6 +412,7 @@ class SOLOv2(nn.Module):
         k = kernel_pred[0].shape[1]
         cate_pred_flat = torch.cat([cp.view(b, c, -1) for cp in cate_pred], dim=-1).sigmoid()
         kernel_pred_flat = torch.cat([kp.view(b, k, -1) for kp in kernel_pred], dim=-1)
+        device = cate_pred_flat.device
         ret = list()
         for single_cat_pred, single_kernel_pred, single_mask_pred, single_size in zip(cate_pred_flat,
                                                                                       kernel_pred_flat,
@@ -420,7 +421,8 @@ class SOLOv2(nn.Module):
             inds = single_cat_pred > self.cfg['score_thresh']
             cate_scores = single_cat_pred[inds]
             if len(cate_scores) == 0:
-                ret.append((torch.zeros(size=(0, 6)), torch.zeros(size=(0, single_size[1], single_size[0]))))
+                ret.append((torch.zeros(size=(0, 6), device=device),
+                            torch.zeros(size=(0, single_size[1], single_size[0]), device=device)))
                 continue
             inds = inds.nonzero(as_tuple=False)
             cate_labels = inds[:, 0]
@@ -439,7 +441,8 @@ class SOLOv2(nn.Module):
             sum_masks = seg_masks.sum((1, 2)).float()
             keep = sum_masks > strides
             if keep.sum() == 0:
-                ret.append((torch.zeros(size=(0, 6)), torch.zeros(size=(0, single_size[1], single_size[0]))))
+                ret.append((torch.zeros(size=(0, 6), device=device),
+                            torch.zeros(size=(0, single_size[1], single_size[0]), device=device)))
                 continue
             seg_masks = seg_masks[keep, ...]
             seg_preds = seg_preds[keep, ...]
@@ -461,7 +464,8 @@ class SOLOv2(nn.Module):
                                      sigma=self.cfg['nms_sigma'], kernel=self.cfg['nms_kernel'])
             keep = cate_scores >= self.cfg['update_threshold']
             if keep.sum() == 0:
-                ret.append((torch.zeros(size=(0, 6)), torch.zeros(size=(0, single_size[1], single_size[0]))))
+                ret.append((torch.zeros(size=(0, 6), device=device),
+                            torch.zeros(size=(0, single_size[1], single_size[0]), device=device)))
                 continue
             seg_preds = seg_preds[keep, :, :]
             cate_scores = cate_scores[keep]
@@ -479,11 +483,11 @@ class SOLOv2(nn.Module):
                                       recompute_scale_factor=True,
                                       align_corners=True).squeeze(0)[:, :single_size[1], :single_size[0]]
             seg_masks = seg_masks > self.cfg['mask_thresh']
-            pred_boxes = torch.zeros((seg_masks.size(0), 4), device=seg_masks.device)
-            for i in range(seg_masks.size(0)):
-                mask = seg_masks[i].squeeze()
-                ys, xs = torch.where(mask)
-                pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()]).float()
+            pred_boxes = torch.zeros((seg_masks.size(0), 4), device=device)
+            # for i in range(seg_masks.size(0)):
+            #     mask = seg_masks[i].squeeze()
+            #     ys, xs = torch.where(mask)
+            #     pred_boxes[i] = torch.tensor([xs.min(), ys.min(), xs.max(), ys.max()], device=device).float()
             pred_boxes = torch.cat([pred_boxes, cate_scores[:, None], cate_labels[:, None]], dim=-1)
             ret.append((pred_boxes, seg_masks))
         return ret
@@ -530,7 +534,10 @@ class SOLOv2(nn.Module):
         mask_pred_list = torch.cat(mask_pred_list)
         mask_target_list = torch.cat(mask_target_list)
         positive_num = len(mask_pred_list)
-
+        if cls_pred_list.dtype == torch.float16:
+            cls_pred_list = cls_pred_list.float()
+        if mask_pred_list.dtype == torch.float16:
+            mask_pred_list = mask_pred_list.float()
         cls_loss = focal_loss(cls_pred_list.sigmoid(), cls_target_list).sum() / (positive_num + 1)
         mask_loss = dice_loss(mask_pred_list.sigmoid(), mask_target_list).mean()
         return cls_loss * self.focal_weight, mask_loss * self.dice_weight, positive_num

@@ -34,6 +34,7 @@ class DDPMixSolver(object):
         dist.init_process_group(backend='nccl')
         self.tdata = COCODataSets(img_root=self.data_cfg['train_img_root'],
                                   annotation_path=self.data_cfg['train_annotation_path'],
+                                  min_threshes=self.data_cfg['min_threshes'],
                                   max_thresh=self.data_cfg['max_thresh'],
                                   debug=self.data_cfg['debug'],
                                   use_crowd=self.data_cfg['use_crowd'],
@@ -44,9 +45,11 @@ class DDPMixSolver(object):
                                   batch_size=self.data_cfg['batch_size'],
                                   num_workers=self.data_cfg['num_workers'],
                                   collate_fn=self.tdata.collect_fn,
+                                  pin_memory=True,
                                   sampler=DistributedSampler(dataset=self.tdata, shuffle=True))
         self.vdata = COCODataSets(img_root=self.data_cfg['val_img_root'],
                                   annotation_path=self.data_cfg['val_annotation_path'],
+                                  min_threshes=self.data_cfg['min_threshes'],
                                   max_thresh=self.data_cfg['max_thresh'],
                                   debug=self.data_cfg['debug'],
                                   use_crowd=self.data_cfg['use_crowd'],
@@ -57,6 +60,7 @@ class DDPMixSolver(object):
                                   batch_size=self.data_cfg['batch_size'],
                                   num_workers=self.data_cfg['num_workers'],
                                   collate_fn=self.vdata.collect_fn,
+                                  pin_memory=True,
                                   sampler=DistributedSampler(dataset=self.vdata, shuffle=False))
         print("train_data: ", len(self.tdata), " | ",
               "val_data: ", len(self.vdata), " | ",

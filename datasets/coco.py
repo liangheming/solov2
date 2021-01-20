@@ -65,7 +65,8 @@ class COCODataSets(Dataset):
                  use_crowd=False,
                  debug=False,
                  remove_blank=True,
-                 aug_cfg=None):
+                 aug_cfg=None,
+                 square_padding=True):
         """
         :param img_root:
         :param annotation_path:
@@ -87,6 +88,7 @@ class COCODataSets(Dataset):
         self.use_crowd = use_crowd
         self.remove_blank = remove_blank
         self.augments = augments
+        self.square_padding = square_padding
         if aug_cfg is None:
             aug_cfg = default_aug_cfg
         self.aug_cfg = aug_cfg
@@ -160,10 +162,10 @@ class COCODataSets(Dataset):
         # data_info = RandScaleToMax(max_threshes=[640], pad_to_square=True)(data_info)
         data_info = self.transform(data_info)
         # assert data_info.img.dtype == np.uint8
-        # import uuid
-        # ret_img = data_info.draw_mask(colors, coco_names)
-        # file_name = str(uuid.uuid4()).replace("-", "")
-        # cv.imwrite("{:s}.jpg".format(file_name), ret_img)
+        import uuid
+        ret_img = data_info.draw_mask(colors, coco_names)
+        file_name = str(uuid.uuid4()).replace("-", "")
+        cv.imwrite("{:s}.jpg".format(file_name), ret_img)
         return data_info
 
     def set_transform(self):
@@ -210,8 +212,7 @@ class COCODataSets(Dataset):
     def __len__(self):
         return len(self.data_info_list)
 
-    @staticmethod
-    def collect_fn(batch: List[BoxSegInfo]):
+    def collect_fn(self, batch: List[BoxSegInfo]):
         batch_img = list()
         batch_target = list()
         batch_length = list()
@@ -219,6 +220,9 @@ class COCODataSets(Dataset):
         valid_size = list()
         max_h = make_divisible(max([item.img.shape[0] for item in batch]), 64)
         max_w = make_divisible(max([item.img.shape[1] for item in batch]), 64)
+        if self.square_padding:
+            max_h = max(max_w, max_h)
+            max_w = max_h
         for item in batch:
             padding_val = item.padding_val
             img = np.ones((max_h, max_w, 3)) * np.array(padding_val)
@@ -250,7 +254,7 @@ if __name__ == '__main__':
 
     coco_data_sets = COCODataSets(img_root="/home/huffman/data/coco/val2017",
                                   annotation_path="/home/huffman/data/coco/annotations/instances_val2017.json",
-                                  debug=50, augments=True)
+                                  debug=50, augments=True, min_threshes=[640, ], max_thresh=640)
     loader = DataLoader(dataset=coco_data_sets, batch_size=2, shuffle=True, collate_fn=coco_data_sets.collect_fn)
 
     for i, s, t, m, l in loader:

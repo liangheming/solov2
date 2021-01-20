@@ -1,11 +1,12 @@
 model_name: solov2
 data:
-#  train_annotation_path: /home/huffman/data/coco/annotations/instances_train2017.json
-  train_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
+  train_annotation_path: /home/huffman/data/coco/annotations/instances_train2017.json
+  #train_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
   val_annotation_path: /home/huffman/data/coco/annotations/instances_val2017.json
-#  train_img_root: /home/huffman/data/coco/train2017
-  train_img_root: /home/huffman/data/coco/val2017
+  train_img_root: /home/huffman/data/coco/train2017
+  #train_img_root: /home/huffman/data/coco/val2017
   val_img_root: /home/huffman/data/coco/val2017
+  min_threshes: [416, 448, 480, 512, 544, 576, 608, 640]
   max_thresh: 768
   use_crowd: False
   batch_size: 4
@@ -23,10 +24,10 @@ model:
 optim:
   optimizer: Adam
   lr: 0.0001
-  milestones: [24,]
+  milestones: [36,]
   warm_up_epoch: 0
   weight_decay: 0.0001
-  epochs: 24
+  epochs: 36
   sync_bn: True
   amp: True
 val:
